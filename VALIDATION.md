@@ -122,7 +122,7 @@ The scaffold is ready for the GitHub push. Recommended sequence:
 2. Require the four CI jobs (`lint`, `test`, `schema-validation`,
    `claims-uniqueness`) and one CODEOWNER review for merge.
 3. Enable auto-merge on the repo.
-4. Pin the `@course-tas` and `@course-maintainers` teams in CODEOWNERS.
+4. Pin the `@theschoolofai` and `@theschoolofai` teams in CODEOWNERS.
 5. Announce the assignment with a link to `CLAIMS.md` and
    `docs/ADAPTER_GUIDE.md`.
 
@@ -342,9 +342,9 @@ Five mechanisms enforce the "one bad PR cannot fail another group" property:
 - **Pin required status checks**: `boundary`, `test-changed-slot`
   for adapter PRs; `lint`, `test`, `schema-validation`,
   `claims-uniqueness` for everyone.
-- **Set CODEOWNERS reviewers** to `@course-tas` for
+- **Set CODEOWNERS reviewers** to `@theschoolofai` for
   `glc/channels/catalogue/**`, `glc/voice/{stt,tts}/providers/**`,
-  and `CLAIMS.md`; to `@course-maintainers` for everything else.
+  and `CLAIMS.md`; to `@theschoolofai` for everything else.
 - The single repo now supports **22 parallel groups** (15 channels +
   7 voice providers) with hard isolation between them. The
   `system_fallback` provider keeps the gateway useful on a fresh

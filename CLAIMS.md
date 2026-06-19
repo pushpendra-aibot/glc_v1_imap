@@ -9,7 +9,7 @@ group may touch. The boundary CI check
 ([`scripts/check_pr_boundaries.py`](scripts/check_pr_boundaries.py))
 rejects PRs whose diff strays outside the owned paths. If a slot
 needs a shared-code change, open a separate PR scoped to that change
-under `@course-maintainers` review.
+under `@theschoolofai` review.
 
 The CLAIMS.md PR is reviewed and merged separately from the
 implementation PR. If your implementation PR has not opened within
@@ -79,6 +79,6 @@ description.
 Changes outside any slot's owned paths require:
 
 - A separate PR scoped only to the shared code.
-- `@course-maintainers` review.
+- `@theschoolofai` review.
 - Branch-protection bypass for the boundary check (the check passes
   trivially because the PR has no group marker).

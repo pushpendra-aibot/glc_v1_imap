@@ -80,7 +80,7 @@ Workflow:
      `test_<slot>.py`, plus `ruff` and `mypy` on your slot's dir.
    - **scorecard** — auto-comments a per-group rubric scorecard.
 6. Branch protection requires a CODEOWNER review. The
-   [`@course-tas`](.github/CODEOWNERS) team merges on green.
+   [`@theschoolofai`](.github/CODEOWNERS) team merges on green.
 
 ## Pass CI
 
