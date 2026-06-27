@@ -7,6 +7,7 @@ for the standard workflow.
 
 import email
 import email.policy
+import smtplib
 from datetime import datetime, timezone
 from email.message import EmailMessage
 from typing import Any
@@ -81,6 +82,19 @@ class Adapter(ChannelAdapter):
         # Dispatch — always return mock's result so rate-limit dicts propagate.
         mock = self.config.get("mock")
         if mock is not None:
-            return await mock.send(payload)
+            try:
+                result = await mock.send(payload)
+            except smtplib.SMTPResponseException as exc:
+                if exc.smtp_code == 421:
+                    return {"status": 429, "error": str(exc)}
+                raise
+
+            if isinstance(result, dict):
+                status = result.get("status")
+                if isinstance(status, str) and status.isdigit():
+                    status = int(status)
+                if status == 421:
+                    return {**result, "status": 429}
+            return result
 
         return payload
