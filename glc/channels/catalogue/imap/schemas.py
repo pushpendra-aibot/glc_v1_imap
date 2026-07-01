@@ -8,7 +8,7 @@ parsed email structure, and SMTP outbound payloads.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ImapConfig(BaseModel):
@@ -82,6 +82,8 @@ class OutboundPayload(BaseModel):
         {"from": str, "to": str, "raw": bytes}
     """
 
-    from_addr: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    from_addr: str = Field(alias="from")
     to: str
     raw: bytes
