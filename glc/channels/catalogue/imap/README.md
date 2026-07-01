@@ -179,6 +179,40 @@ uv run pytest tests/channels/test_imap.py -v
 uv run pytest tests/test_imap_extended.py -v
 ```
 
+On success, the 7 CI-required tests should report:
+
+
+Detailed CI test case expectations:
+
+- `test_on_message_owner_returns_valid_envelope`
+  - the owner message is converted to `ChannelMessage`
+  - `channel == imap`, `channel_user_id == OWNER_ID`, `trust_level == owner_paired`
+  - message text contains the inbound body
+
+- `test_on_message_stranger_is_untrusted`
+  - a stranger message is accepted but marked `untrusted`
+  - `channel_user_id == STRANGER_ID`
+
+- `test_send_emits_valid_wire_payload`
+  - outbound `ChannelReply` produces SMTP wire payload
+  - `to` matches the owner, and raw bytes contain `From:`, `To:`, `Subject:`, and reply text
+
+- `test_disconnect_is_handled`
+  - the adapter survives an IMAP disconnect event cleanly
+  - no exception should be raised while processing a new owner message after disconnect
+
+- `test_rate_limit_propagates_429`
+  - SMTP 421 back-pressure is surfaced as a structured result
+  - the adapter may return `status` 421 or normalise to 429
+
+- `test_allowlist_silently_drops_stranger_in_public`
+  - public-channel mode should not deliver stranger messages
+  - result is `None` or `trust_level == untrusted`
+
+- `test_channel_specific_behaviour_pdf_attachment_to_artifact`
+  - a multipart PDF email produces a text body and one `application/pdf` attachment
+  - attachment ref must start with `art:` and the PDF bytes must be stored in the mock artifact store
+
 ---
 
 ## Live Demo
@@ -202,6 +236,18 @@ full pipeline.
 [MSG  ] From=you@personal.com | trust=owner_paired | text='Hello bot!' | attachments=0
 [REPLY] {'status': 250, 'message_id': '<3f2a...@glc>'}
 ```
+
+## Proof of live delivery
+
+The screenshots below show the real Zoho bot reply delivered from the IMAP adapter and received in the personal inbox.
+
+![Zoho inbox showing the sent message](Zohomail.png)
+
+*Zoho Mail inbox with the adapter reply message visible.*
+
+![Gmail inbox showing the reply classified as Spam](PersonalEmail.png)
+
+*Gmail view showing the reply from `EAGV3S11IMAP@zohomail.in` delivered to the personal account.*
 
 ### What each log prefix means
 
