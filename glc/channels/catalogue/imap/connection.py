@@ -29,7 +29,7 @@ from typing import Any
 try:
     import certifi
 except ImportError:
-    certifi = None
+    certifi = None  # type: ignore[assignment]
 
 log = logging.getLogger(__name__)
 
