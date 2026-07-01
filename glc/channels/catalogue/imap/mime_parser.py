@@ -170,7 +170,7 @@ def parse(raw_bytes: bytes) -> ParsedEmail | None:
     attachments = _walk_attachments(msg)
 
     return ParsedEmail(
-        uid=None,           # injected by the adapter from the IMAP FETCH envelope
+        uid=None,  # injected by the adapter from the IMAP FETCH envelope
         message_id=message_id,
         sender=sender,
         subject=subject,

@@ -47,9 +47,7 @@ class ArtifactStore:
 
     def __init__(self, base_dir: Path | str | None = None) -> None:
         env_dir = os.getenv("GLC_ARTIFACTS_DIR")
-        self._base: Path = (
-            Path(env_dir) if env_dir else (Path(base_dir) if base_dir else _DEFAULT_DIR)
-        )
+        self._base: Path = Path(env_dir) if env_dir else (Path(base_dir) if base_dir else _DEFAULT_DIR)
         self._meta: dict[str, _Meta] = {}
 
     # ------------------------------------------------------------------
@@ -64,14 +62,10 @@ class ArtifactStore:
     def _validate_ref(ref: str) -> str:
         """Return the bare 16-hex key or raise ValueError."""
         if not isinstance(ref, str) or not ref.startswith("art:"):
-            raise ValueError(
-                f"Invalid artifact ref (must start with 'art:'): {ref!r}"
-            )
+            raise ValueError(f"Invalid artifact ref (must start with 'art:'): {ref!r}")
         key = ref.removeprefix("art:")
         if not _HEX16_RE.match(key):
-            raise ValueError(
-                f"Invalid artifact key (must be exactly 16 lowercase hex chars): {key!r}"
-            )
+            raise ValueError(f"Invalid artifact key (must be exactly 16 lowercase hex chars): {key!r}")
         return key
 
     def _path(self, key: str) -> Path:

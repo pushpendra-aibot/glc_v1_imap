@@ -87,11 +87,15 @@ async def main() -> None:
     owner_email = _env("GLC_IMAP_OWNER")
 
     # Validate required variables
-    missing = [k for k, v in {
-        "IMAP_USER": imap_user,
-        "IMAP_PASSWORD": imap_password,
-        "GLC_IMAP_OWNER": owner_email,
-    }.items() if not v]
+    missing = [
+        k
+        for k, v in {
+            "IMAP_USER": imap_user,
+            "IMAP_PASSWORD": imap_password,
+            "GLC_IMAP_OWNER": owner_email,
+        }.items()
+        if not v
+    ]
     if missing:
         log.error("[BOOT ] Missing required environment variables: %s", ", ".join(missing))
         log.error("[BOOT ] See glc/channels/catalogue/imap/.env.example")
@@ -134,6 +138,7 @@ async def main() -> None:
                 # Quick header peek for logging (adapter re-parses below)
                 import email as _email
                 import email.policy as _policy
+
                 _msg = _email.message_from_bytes(raw, policy=_policy.default) if raw else None
                 _from = _msg.get("From", "?") if _msg else "?"
                 _subj = _msg.get("Subject", "(no subject)") if _msg else "?"

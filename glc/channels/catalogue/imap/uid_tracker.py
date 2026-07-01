@@ -38,11 +38,7 @@ class UidTracker:
 
     def __init__(self, db_path: Path | str | None = None) -> None:
         env_path = os.getenv("GLC_IMAP_UID_DB")
-        self._path: Path = (
-            Path(env_path)
-            if env_path
-            else (Path(db_path) if db_path else _DEFAULT_PATH)
-        )
+        self._path: Path = Path(env_path) if env_path else (Path(db_path) if db_path else _DEFAULT_PATH)
         self._lock = threading.Lock()
         self._init_schema()
 
