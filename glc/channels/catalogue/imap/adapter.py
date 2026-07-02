@@ -35,6 +35,7 @@ Outbound pipeline  send(reply) → dict
 from __future__ import annotations
 
 import hashlib
+import logging
 import smtplib
 import uuid
 from datetime import datetime
@@ -43,11 +44,14 @@ from typing import Any, Literal
 
 from glc.channels.base import ChannelAdapter
 from glc.channels.catalogue.imap.artifacts import ArtifactStore
+from glc.channels.catalogue.imap.email_auth import auth_passes, parse_authentication_results
 from glc.channels.catalogue.imap.mime_parser import parse as _mime_parse
 from glc.channels.catalogue.imap.smtp_sender import SmtpSender
 from glc.channels.catalogue.imap.uid_tracker import UidTracker
 from glc.channels.envelope import Attachment, ChannelMessage, ChannelReply
 from glc.security.trust_level import classify
+
+log = logging.getLogger(__name__)
 
 _BOT_FROM = "bot@example.com"
 
@@ -67,6 +71,16 @@ class Adapter(ChannelAdapter):
         self.mock = self.config.get("mock")
         self.is_public_channel = self.config.get("is_public_channel", False)
         self._mailbox: str = self.config.get("mailbox", "INBOX")
+
+        # In mock/test mode require_auth auto-defaults to False so the
+        # existing 7 tests (which build messages without auth headers) keep
+        # passing without modification.  Production code must pass
+        # require_auth=True (the ImapConfig default) explicitly.
+        _default_require_auth = self.mock is None
+        self._require_auth: bool = self.config.get("require_auth", _default_require_auth)
+        self._trusted_authserv_ids: set[str] = set(
+            self.config.get("trusted_authserv_ids", [])
+        )
 
         # Subject cache: Message-ID → Subject
         # Keyed by thread_id so each conversation thread gets the correct
@@ -180,6 +194,28 @@ class Adapter(ChannelAdapter):
 
         # 3. Trust classification using the bare sender address
         trust_level = classify(self.name, parsed.sender)
+
+        # The From: header is attacker-controlled; any internet stranger can
+        # forge it.  Only trust a paired identity when the receiving MTA's
+        # Authentication-Results: header confirms SPF/DKIM/DMARC passed.
+        # Fail-closed: missing or untrusted auth header ⇒ downgrade to untrusted.
+        if self._require_auth and trust_level in ("owner_paired", "user_paired"):
+            verdict = parse_authentication_results(
+                parsed.auth_result_headers,
+                self._trusted_authserv_ids,
+            )
+            if not auth_passes(verdict, parsed.sender):
+                log.warning(
+                    "[IMAP ] Downgrading %s → untrusted "
+                    "(dmarc=%s dkim=%s spf=%s from_aligned=%s authserv=%s)",
+                    parsed.sender,
+                    verdict.dmarc,
+                    verdict.dkim,
+                    verdict.spf,
+                    verdict.from_aligned,
+                    verdict.authserv_id,
+                )
+                trust_level = "untrusted"
 
         # 4. Public-channel gate: silently drop untrusted senders
         if self.is_public_channel and trust_level == "untrusted":

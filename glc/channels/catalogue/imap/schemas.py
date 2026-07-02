@@ -44,6 +44,24 @@ class ImapConfig(BaseModel):
     )
     artifacts_dir: str = Field(default="", description="Artifact store directory; '' → ~/.glc/artifacts")
 
+    trusted_authserv_ids: list[str] = Field(
+        default_factory=list,
+        description=(
+            "MTA identifiers (the authserv-id in Authentication-Results:) trusted to "
+            "have validated SPF/DKIM/DMARC. Examples: 'mx.google.com', 'zoho.in', "
+            "'mx.fastmail.com'. Must be non-empty in production; empty means every "
+            "message is treated as untrusted."
+        ),
+    )
+    require_auth: bool = Field(
+        default=True,
+        description=(
+            "Enforce the Authentication-Results check before granting owner_paired or "
+            "user_paired trust. Disable only in test environments where the mock has "
+            "no Authentication-Results machinery."
+        ),
+    )
+
 
 class RawEnvelope(BaseModel):
     """Wire shape from an IMAP FETCH command.
@@ -75,6 +93,7 @@ class ParsedEmail(BaseModel):
     )
     references: str | None = None  # References header (thread chain)
     in_reply_to: str | None = None  # In-Reply-To header
+    auth_result_headers: list[str] = Field(default_factory=list)
 
 
 class OutboundPayload(BaseModel):
